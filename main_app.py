@@ -8,10 +8,12 @@ import pathBuilder as pb
 
 async def echo(websocket, path):
     while True:
-        msg = await websocket.recv()
-        print("'" + msg.strip() + "'")
-        LP.log_digest(msg.strip())
-
+        try:
+            msg = await websocket.recv()
+            LP.log_digest(msg.strip())
+        except Exception:
+            LP.persist()
+            asyncio.get_event_loop().stop()
 
 if __name__ == '__main__':
 

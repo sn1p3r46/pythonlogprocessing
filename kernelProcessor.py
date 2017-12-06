@@ -59,7 +59,6 @@ class KernelProcessor:
 
     def log_digest(self, tlid, hour, mins, uid):
         actual_slot = hour*60 + mins
-        print('ingesting: {}'.format(tlid))
         if actual_slot > self._last_slot_seen:
             self._freeze(actual_slot)
             self._last_slot_seen = actual_slot

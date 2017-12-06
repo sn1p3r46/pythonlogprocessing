@@ -70,6 +70,18 @@ class LogProcessor:
         print("Historical data loaded!")
         return self.create_data_structure(past_data, n_days)
 
+    def persist(self, log_date=None):
+
+        file_name = self.pb.build_past_data_file_name(self.last_date_seen)
+        with open(self.pb.build_historical_path(file_name), 'wb') as fd:
+            pickle.dump(dict(self.KP.get_raw_snapshot()), fd)
+        print("Stored: {}".format(file_name))
+
+        if log_date is not None:
+            self.last_date_seen = log_date
+
+        self.KP.reset()
+
     def log_digest(self, log):
         log_tid, log_datetime, log_uid = log.split(';')
         log_date, log_time = log_datetime.split(' ')
@@ -79,13 +91,11 @@ class LogProcessor:
             self.last_date_seen = log_date
             # TODO load past data in memory
 
+        if log_date < self.last_date_seen:
+            raise ValueError('Unordered Logs')
+
         elif self.last_date_seen < log_date:
-            # TODO: store function
-            print(' === Store Function === ')
-            print("last_date_seen: {}".format(self.last_date_seen))
-            print("log_date: {}".format(log_date))
-            print(self.KP.get_raw_snapshot())
-            self.last_date_seen = log_date
+            self.persist(log_date)
 
         self.KP.log_digest(self.rtd.get(log_tid), int(h), int(m), log_uid)
 
