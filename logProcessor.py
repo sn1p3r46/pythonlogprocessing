@@ -1,4 +1,4 @@
-from collections import defaultdict
+# from collections import defaultdict
 from dateutil.parser import parse
 from datetime import timedelta
 
@@ -6,7 +6,7 @@ import kernelProcessor as kp
 import numpy as np
 import warnings
 import pickle
-import const
+# import const
 
 
 class LogProcessor:
@@ -72,9 +72,12 @@ class LogProcessor:
 
     def persist(self, log_date=None):
 
-        file_name = self.pb.build_past_data_file_name(self.last_date_seen)
+        file_name = self.pb.build_past_data_file_name(
+                                        self.last_date_seen.replace('-', ''))
         with open(self.pb.build_historical_path(file_name), 'wb') as fd:
             pickle.dump(dict(self.KP.get_raw_snapshot()), fd)
+
+        print(dict(self.KP.get_raw_snapshot()))
         print("Stored: {}".format(file_name))
 
         if log_date is not None:
@@ -83,7 +86,7 @@ class LogProcessor:
         self.KP.reset()
 
     def log_digest(self, log):
-        log_tid, log_datetime, log_uid = log.split(';')
+        log_uid, log_datetime, log_tid = log.split(';')
         log_date, log_time = log_datetime.split(' ')
         h, m = log_time.split(':')[:2]
 
