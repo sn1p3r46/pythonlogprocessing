@@ -1,4 +1,5 @@
 from collections import deque
+import warnings
 
 import numpy as np
 
@@ -6,19 +7,21 @@ class HistoricalDataQueue(deque):
 
     def __init__(self, iterable=(), maxlen=None):
         super().__init__(iterable, maxlen)
-        self.mean = np.nanmean(self)
-        self.std = np.nanstd(self)
-        self.sum = np.nansum(self)
+        self.__update()
 
     def __update(self):
-        print ("Update")
-        self.mean = np.nanmean(self)
-        self.std = np.nanstd(self)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            self.mean = np.nanmean(self)
+            self.std = np.nanstd(self)
+            self.sum = np.nansum(self)
 
     def __short_update(self, new=np.nan, old=np.nan):
-        self.sum = np.nansum((self.sum, - old, new))
-        self.mean = self.sum / len(self)
-        self.std = np.nanstd(self)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            self.sum = np.nansum((self.sum, - old, new))
+            self.mean = self.sum / len(self)
+            self.std = np.nanstd(self)
 
     def __repr__(self):
         return "HistoricalData(" + super().__repr__() + ", mean=" + \
