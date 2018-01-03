@@ -13,6 +13,8 @@ class DataHandler:
         self.pb = path_builder
         self.rtd = self.load_rtd()
         self.translator = self.load_translator()
+        self.tower_past_data = None
+        self.last_date_loaded = None
 
     def load_rtd(self):
         print('>[load_relevant_towers(path)]\nLOADING RELEVANT TOWERS\n---')
@@ -27,12 +29,13 @@ class DataHandler:
 
     def load_past_data(self, date_str, n_days):
         files_to_load = []
-        my_date = parse(date_str)
-        my_delta = timedelta(days=1)
+        date = parse(date_str)
+        time_delta = timedelta(days=1)
+        self.last_date_loaded = date
         for i in range(n_days):
-            my_date = my_date - my_delta
+            date = date - time_delta
             files_to_load.append(
-                self.pb.build_past_data_file_name(my_date.strftime('%Y%m%d')))
+                self.pb.build_past_data_file_name(date.strftime('%Y%m%d')))
 
         past_data = []
         for filename in files_to_load:
@@ -45,9 +48,29 @@ class DataHandler:
                       build_historical_path(filename))
 
         print("Historical data loaded!")
-        return self.create_data_structure(past_data, n_days)
+        return _create_data_structure(past_data, n_days)
 
-    def create_data_structure(self, past_data_list, n_days):
+    def update_past_data(self, date_str):
+        date = parse(date_str)
+        while(self.last_date_loaded < date):
+            filename = self.pb.build_past_data_file_name(
+                                        self.last_date_loaded.strftime('%Y%m%d'))
+
+            with open(self.pb.build_historical_path(filename), 'rb') as my_file:
+                print(self.pb.build_historical_path(filename))
+                past_data = pickle.load(my_file)
+                # for tower_id in set(self.rtd.values()):
+                for tower_id in past_data.keys():
+                    if tower_id in past_data:
+                        for idx, val in enumerate(past_data[tower_id]):
+                            self.tower_past_data[tower_id][idx].appendleft(val)
+                    else:
+                        for idx in range(1440):
+                            self.tower_past_data[tower_id][idx].appendleft(np.nan)
+
+            self.last_date_loaded += timedelta(days=1)
+
+    def _create_data_structure(self, past_data_list, n_days):
         print('>[create_data_structure(past_data_list, number_of_slices,' +
               ' number_of_days)]\nCREATING DATA STRUCTURE\n---')
 
@@ -59,27 +82,18 @@ class DataHandler:
                 for idx, daily_data in enumerate(past_data_list):
                     if tower_id in daily_data:
                         tower_historical[idx] = daily_data[tower_id][ith_slot]
-                tower_queues_list[ith_slot] = HDQ(tower_historical)
-                tower_queues_list[ith_slot].reverse()
+                tower_queues_list[ith_slot] = HDQ(tower_historical, maxlen=15)
+                tower_queues_list[ith_slot]
             tower_past_data_structs[tower_id] = tower_queues_list
 
 
         print('>[create_data_structure(past_data_list, number_of_slices,' +
               ' number_of_days)]\nDATA STRUCTURE CREATED\n---')
+        self.tower_past_data = tower_past_data_structs
         return tower_past_data_structs
 
-    def persist(self, log_date=None):
-
+    def persist_historical_data(self, data):
         file_name = self.pb.build_past_data_file_name(
-                                        self.last_date_seen.replace('-', ''))
+                                        self.last_date_loaded + "_test")
         with open(self.pb.build_historical_path(file_name), 'wb') as fd:
-            pickle.dump(dict(self.KP.get_raw_snapshot()), fd)
-
-        print(dict(self.KP.get_raw_snapshot()))
-        print("Stored: {}".format(file_name))
-
-        if log_date is not None:
-            self.last_date_seen = log_date
-
-        # TODO move it back to LogProcessor
-        self.KP.reset()
+            pickle.dump(dict(data), fd)
