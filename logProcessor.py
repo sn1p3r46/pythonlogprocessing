@@ -112,9 +112,9 @@ class LogProcessor:
     def __init__(self, pb, date=None, past_days=15):
         self.pb = pb
         self.load_rtd()
+        self.load_translator()
         self.init_kernelProcessor()
         self.last_date_seen = date
-        self.load_translator()
 
         if date:
             self.tower_past_data = self.load_past_data(date, past_days)
