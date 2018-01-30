@@ -3,7 +3,7 @@ from dateutil.parser import parse
 from datetime import timedelta
 
 import numpy as np
-import warnings
+# import warnings
 import logging
 import pickle
 
@@ -19,7 +19,8 @@ class DataHandler:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         # create formatter
-        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s ::: \'%(message)s\'')
+        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s\
+                                      ::: \'%(message)s\'')
         ch.setFormatter(formatter)
         # add ch to logger
         logger.addHandler(ch)
@@ -37,8 +38,8 @@ class DataHandler:
         self.logger.debug('.load_rtd()')
         with open(self.pb.get_relevant_towers_path(), 'r') as tower_f:
             return {l.strip().split(';')[0]:
-                        ';'.join(l.strip().split(';')[-2:])
-                        for l in tower_f.readlines()}
+                    ';'.join(l.strip().split(';')[-2:])
+                    for l in tower_f.readlines()}
 
     def load_translator(self):
         self.logger.debug('.load_translator()')
@@ -46,7 +47,8 @@ class DataHandler:
             return pickle.load(fobj)
 
     def load_past_data(self, date_str, n_days):
-        self.logger.debug(f'.load_past_data(date_str:{date_str}, n_days:{n_days}')
+        self.logger.debug(f'.load_past_data(date_str:{date_str},\
+                          n_days: {n_days}')
         files_to_load = []
         date = parse(date_str)
         time_delta = timedelta(days=1)
@@ -75,10 +77,10 @@ class DataHandler:
         self.logger.debug(f'last_date_loaded: "{self.last_date_loaded}"')
         date = parse(date_str)
         while(self.last_date_loaded < date):
-            filename = self.pb.build_past_data_file_name(
-                                        self.last_date_loaded.strftime('%Y%m%d'))
-            self.logger.debug(f'loading file: "{filename}"')
-            with open(self.pb.build_historical_path(filename), 'rb') as my_file:
+            f_name = self.pb.build_past_data_file_name(
+                       self.last_date_loaded.strftime('%Y%m%d'))
+            self.logger.debug(f'loading file: "{f_name}"')
+            with open(self.pb.build_historical_path(f_name), 'rb') as my_file:
                 past_data = pickle.load(my_file)
                 # for tower_id in set(self.rtd.values()):
                 for tower_id in past_data.keys():
@@ -87,13 +89,15 @@ class DataHandler:
                             self.tower_past_data[tower_id][idx].appendleft(val)
                     else:
                         for idx in range(1440):
-                            self.tower_past_data[tower_id][idx].appendleft(np.nan)
+                            self.tower_past_data[tower_id][idx].appendleft(
+                                np.nan)
 
             self.last_date_loaded += timedelta(days=1)
         self.logger.debug('.update_past_data() - COMPLETED')
 
     def _create_data_structure(self, past_data_list, n_days):
-        self.logger.debug(f"._create_data_structure(past_data_list:[...], n_days:{n_days})")
+        self.logger.debug(f"._create_data_structure(past_data_list:[...],\
+         n_days:{n_days})")
 
         tower_past_data_structs = {}
         for tower_id in set(self.rtd.values()):
@@ -106,7 +110,6 @@ class DataHandler:
                 tower_queues_list[ith_slot] = HDQ(tower_historical, maxlen=15)
                 tower_queues_list[ith_slot]
             tower_past_data_structs[tower_id] = tower_queues_list
-
 
         self.logger.debug(f"_create_data_structure(...) - COMPLETED")
 
@@ -121,4 +124,5 @@ class DataHandler:
         with open(self.pb.build_historical_path(file_name), 'wb') as fd:
             pickle.dump(dict(data), fd)
 
-        self.logger.debug(f".persist_historical_data(...) file_name:{file_name} - COMPLETED")
+        self.logger.debug(f".persist_historical_data(...) \
+                          file_name:{file_name} - COMPLETED")

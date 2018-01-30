@@ -1,4 +1,4 @@
-from collections import Counter, defaultdict
+from collections import Counter
 import kernelProcessor as kp
 import numpy as np
 import pytest

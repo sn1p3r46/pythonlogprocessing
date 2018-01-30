@@ -12,6 +12,7 @@ from dataHandler import DataHandler as DH
 from kernelProcessor import KernelProcessor as KP
 from evaluator import standardize, evaluate
 
+
 class MainProcessor:
 
     def __init__(self, pb, date_str=None, past_days=15, time_delta=5):
@@ -23,13 +24,15 @@ class MainProcessor:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         # create formatter
-        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s ::: \'%(message)s\'')
+        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s'
+                                      + '::: \'%(message)s\'')
         # add formatter to ch
         ch.setFormatter(formatter)
         # add ch to logger
         logger.addHandler(ch)
         # 'application' code
-        logger.debug(f'__init__(pb:{pb}, date_str:"{date_str}", past_days:{past_days}, time_delta:{time_delta})')
+        logger.debug(f'__init__(pb:{pb}, date_str:"{date_str}", past_days:' +
+                     f'{past_days}, time_delta:{time_delta})')
 
         self.logger = logger
         self.pb = pb
@@ -44,27 +47,31 @@ class MainProcessor:
             self.dh.load_past_data(date_str, past_days)
         else:
             print('Date not provided, will be deducted while processing')
-            logger.debug(f'__init__(pb:{pb}, date_str:"{date_str}" --> Date not provided, will be deducted while processing')
-
+            logger.debug(f'__init__(pb:{pb}, date_str:"{date_str}" --> Date' +
+                         ' not provided, will be deducted while processing')
 
     def log_digest(self, log):
         self.logger.debug(f'Digesting new log: "{log}"')
 
         log_uid, log_datetime, log_tid = log.split(';')
         log_date, log_time = log_datetime.split(' ')
-        log_date = log_date.replace('-','')
+        log_date = log_date.replace('-', '')
         h, m = log_time.split(':')[:2]
         h, m = int(h), int(m)
 
         log_slot = h*60 + m
 
-        self.logger.debug(f'LOG DATE: "{log_date}" | LAST DATE SEEN: "{self.last_date_seen}" | LOG SLOT: "{log_slot}" | SLOT TIME: "{self.slot_time}"')
+        self.logger.debug(f'LOG DATE: "{log_date}" | ' +
+                          'LAST DATE SEEN: "{self.last_date_seen}" | ' +
+                          'LOG SLOT: "{log_slot}" | ' +
+                          'SLOT TIME: "{self.slot_time}"')
 
         if log_uid == 'NULL' or log_tid == '':
             return
 
         if self.last_date_seen is None:
-            self.logger.debug('self.last_date_seen is None, getting it from log')
+            self.logger.debug('self.last_date_seen is None,' +
+                              'getting it from log')
             self.last_date_seen = log_date
             self.dh.load_past_data(log_date, self.past_days)
 
@@ -98,7 +105,6 @@ class MainProcessor:
             self.slot_time = self.time_delta
 
         # TODO plug evaluator and websocket
-
 
         self.kp.log_digest(self.dh.rtd.get(log_tid), h, m, log_uid)
 

@@ -10,7 +10,7 @@ server_address = 'ws://localhost:8888'
 async def hello():
     async with websockets.connect(server_address) as websocket:
         for fp in pb.PathBuilder.get_stream_files_paths():
-#        for fp in ['/media/andre/HDD/TkData/sorted/filtered_null_and_empty/test_file.txt']:
+            # for fp in ['/media/andre/HDD/TkData/sorted/filtered_null_and_empty/test_file.txt']:
             with open(fp, 'r') as fd:
                 i = 0
                 for log in fd:
