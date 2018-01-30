@@ -3,25 +3,62 @@ import warnings
 
 import numpy as np
 
+
 class HistoricalDataQueue(deque):
 
     def __init__(self, iterable=(), maxlen=None):
+        if maxlen is None:
+            raise ValueError()
+
         super().__init__(iterable, maxlen)
-        self.__update()
 
-    def __update(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            self.mean = np.nanmean(self)
-            self.std = np.nanstd(self)
-            self.sum = np.nansum(self)
+        self.sum, self.sqr_sum, self.NaNCounter = self.__counter_helper()
 
-    def __short_update(self, new=np.nan, old=np.nan):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            self.sum = np.nansum((self.sum, - old, new))
-            self.mean = self.sum / len(self)
-            self.std = np.nanstd(self)
+        if self.NaNCounter == len(self):
+            self.mean = np.nan
+            self.std = np.nan
+            self.sum = np.nan
+            self.sqr_sum = np.nan
+
+        else:
+            nonNaN = (len(self) - self.NaNCounter)
+            self.mean = self.sum / nonNaN
+            std_sum = nonNaN*(self.mean**2)-2*self.mean*self.sum + self.sqr_sum
+            self.std = (std_sum / nonNaN)**(1/2)
+
+    def __counter_helper(self):
+
+        NaNCounter = 0
+        my_sum = 0
+        sqr_sum = 0
+
+        for i in self:
+            if np.isnan(i):
+                NaNCounter += 1
+            else:
+                my_sum += i
+                sqr_sum += i**2
+
+        return my_sum, sqr_sum, NaNCounter
+
+    def _update(self, new=np.nan, old=0):
+        if np.isnan(self.mean):
+            self.sum = new
+            self.sqr_sum = new**2
+            self.std = 0.0*new
+            self.mean = new
+            self.NaNCounter = len(self) + 1*np.isnan(new) - 1*np.isnan(old)
+
+        else:
+            self.NaNCounter += 1*np.isnan(new) - 1*np.isnan(old)
+            nonNaN = (len(self) - self.NaNCounter)
+            new = new if not np.isnan(new) else 0
+            old = old if not np.isnan(old) else 0
+            self.sum += new - old
+            self.sqr_sum += new**2 - old**2
+            self.mean = self.sum/nonNaN
+            std_sum = nonNaN*(self.mean**2)-2*self.mean*self.sum + self.sqr_sum
+            self.std = (std_sum / nonNaN)**(1/2)
 
     def __repr__(self):
         return "HistoricalData(" + super().__repr__() + ", mean=" + \
@@ -30,13 +67,13 @@ class HistoricalDataQueue(deque):
     def __str__(self):
         return self.__repr__()
 
-    def append(self,x):
+    def append(self, x):
         old = np.nan
         if len(self) == self.maxlen:
             old = self[0]
 
         super().append(x)
-        self.__short_update(x, old)
+        self._update(x, old)
 
     def appendleft(self, x):
         old = np.nan
@@ -44,7 +81,7 @@ class HistoricalDataQueue(deque):
             old = self[-1]
 
         super().appendleft(x)
-        self.__short_update(x, old)
+        self._update(x, old)
 
     def pop(self):
         res = super().pop()
@@ -57,8 +94,13 @@ class HistoricalDataQueue(deque):
         return res
 
     def clear(self):
-        res = super().clear()
-        self.mean, self.std, self.sum = 0,0,0
+        # res = super().clear()
+        super().clear()
+        self.mean = np.nan
+        self.std = np.nan
+        self.sum = np.nan
+        self.sqr_sum = np.nan
+        self.NaNCounter = 0
 
     def extend(self, iterable):
         res = super().extend(iterable)
