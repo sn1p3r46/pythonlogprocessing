@@ -1,5 +1,4 @@
 from collections import deque
-import warnings
 
 import numpy as np
 
