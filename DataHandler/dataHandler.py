@@ -1,4 +1,4 @@
-from historicalDataQueue import HistoricalDataQueue as HDQ
+from DataStructures.historicalDataQueue import HistoricalDataQueue as HDQ
 from dateutil.parser import parse
 from datetime import timedelta
 
@@ -19,8 +19,8 @@ class DataHandler:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         # create formatter
-        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s\
-                                      ::: \'%(message)s\'')
+        formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:' +
+                                      '%(name)s ::: \'%(message)s\'')
         ch.setFormatter(formatter)
         # add ch to logger
         logger.addHandler(ch)
@@ -47,8 +47,8 @@ class DataHandler:
             return pickle.load(fobj)
 
     def load_past_data(self, date_str, n_days):
-        self.logger.debug(f'.load_past_data(date_str:{date_str},\
-                          n_days: {n_days}')
+        self.logger.debug(f'.load_past_data(date_str:{date_str}, ' +
+                          'n_days: {n_days}')
         files_to_load = []
         date = parse(date_str)
         time_delta = timedelta(days=1)
@@ -96,8 +96,8 @@ class DataHandler:
         self.logger.debug('.update_past_data() - COMPLETED')
 
     def _create_data_structure(self, past_data_list, n_days):
-        self.logger.debug(f"._create_data_structure(past_data_list:[...],\
-         n_days:{n_days})")
+        self.logger.debug(f"._create_data_structure(past_data_list:[...], " +
+                          "n_days:{n_days})")
 
         tower_past_data_structs = {}
         for tower_id in set(self.rtd.values()):
@@ -124,5 +124,5 @@ class DataHandler:
         with open(self.pb.build_historical_path(file_name), 'wb') as fd:
             pickle.dump(dict(data), fd)
 
-        self.logger.debug(f".persist_historical_data(...) \
-                          file_name:{file_name} - COMPLETED")
+        self.logger.debug(f".persist_historical_data(...) " +
+                          "file_name:{file_name} - COMPLETED")

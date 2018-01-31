@@ -46,7 +46,7 @@ class KernelProcessor:
 
     def reset(self, rtl=None, starting_slot=None):
 
-        # res = self.get_raw_snapshot()
+        res = self.get_raw_snapshot()
 
         if starting_slot is None:
             starting_slot = self._starting_slot
@@ -56,7 +56,7 @@ class KernelProcessor:
         else:
             self.__init__(self._rtl, starting_slot)
 
-        # return res
+        return res
 
     def log_digest(self, tlid, hour, mins, uid):
         actual_slot = hour*60 + mins

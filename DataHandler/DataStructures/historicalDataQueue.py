@@ -40,19 +40,24 @@ class HistoricalDataQueue(deque):
 
         return my_sum, sqr_sum, NaNCounter
 
-    def _update(self, new=np.nan, old=0):
+    def _update(self, new=np.nan, old=None):
         if np.isnan(self.mean):
             self.sum = new
             self.sqr_sum = new**2
             self.std = 0.0*new
             self.mean = new
-            self.NaNCounter = len(self) + 1*np.isnan(new) - 1*np.isnan(old)
+            self.NaNCounter +=\
+                + 1*np.isnan(new)\
+                - 1*(old is not None and np.isnan(old))
 
         else:
-            self.NaNCounter += 1*np.isnan(new) - 1*np.isnan(old)
+            self.NaNCounter += \
+                1*np.isnan(new) \
+                - 1*(old is not None and np.isnan(old))
+
             nonNaN = (len(self) - self.NaNCounter)
             new = new if not np.isnan(new) else 0
-            old = old if not np.isnan(old) else 0
+            old = old if old is not None and not np.isnan(old) else 0
             self.sum += new - old
             self.sqr_sum += new**2 - old**2
             self.mean = self.sum/nonNaN
@@ -64,21 +69,16 @@ class HistoricalDataQueue(deque):
                                 str(self.mean) + ", std=" + str(self.std) + ")"
 
     def __str__(self):
-        return self.__repr__()
+        return "HistoricalData(" + super().__repr__() + ", mean=" + \
+                                str(self.mean) + ", std=" + str(self.std) + ")"
 
     def append(self, x):
-        old = np.nan
-        if len(self) == self.maxlen:
-            old = self[0]
-
+        old = self[0] if len(self) == self.maxlen else None
         super().append(x)
         self._update(x, old)
 
     def appendleft(self, x):
-        old = np.nan
-        if len(self) == self.maxlen:
-            old = self[-1]
-
+        old = self[-1] if len(self) == self.maxlen else None
         super().appendleft(x)
         self._update(x, old)
 
@@ -113,11 +113,6 @@ class HistoricalDataQueue(deque):
 
     def index(self, x, start=None, stop=None):
         res = super().index(x, start, stop)
-        self.__update()
-        return res
-
-    def insert(self, i, x):
-        res = super().insert(i, x)
         self.__update()
         return res
 

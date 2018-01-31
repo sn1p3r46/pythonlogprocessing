@@ -2,6 +2,7 @@
 
 import os
 
+
 class PathBuilder():
 
     _root = "/home/andre/Documents/ELTE/TkPrj/Documentation/data"
