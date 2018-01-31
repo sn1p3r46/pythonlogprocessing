@@ -24,6 +24,7 @@ cutpoints = {
          np.inf]
 
 }
+
 ```
 
 The `const.py` file contains just some constant values useful for the core application.
@@ -99,9 +100,9 @@ class PathBuilder():
 
 ```
 
-The `pathBuilder.py` file contains a class intended to be a helper to retrieve files given some constants fields. This class has several static methods useful to build or retrieve the paths of the requested files. This helper have been created to make the code more readable and tidy.
+The `pathBuilder.py` file contains a class intended to be a helper to retrieve files given some constants fields. This class has several static methods useful to build or retrieve the paths of the requested files. This helper have been created to make the code more readable and organized.
 
-Follows the description of every method:
+Follows the description of each method:
 
 ```python
 PathBuilder.get_relevant_towers_path()
