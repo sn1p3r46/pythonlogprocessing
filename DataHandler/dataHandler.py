@@ -1,4 +1,5 @@
-from DataStructures.historicalDataQueue import HistoricalDataQueue as HDQ
+from DataHandler.DataStructures.historicalDataQueue import\
+                                                    HistoricalDataQueue as HDQ
 from dateutil.parser import parse
 from datetime import timedelta
 
@@ -126,3 +127,9 @@ class DataHandler:
 
         self.logger.debug(f".persist_historical_data(...) " +
                           "file_name:{file_name} - COMPLETED")
+
+    def get_tower_mean(self, rtl, slot):
+        return self.tower_past_data[rtl][slot].mean
+
+    def get_tower_std(self, rtl, slot):
+        return self.dh.tower_past_data[rtl][slot].std

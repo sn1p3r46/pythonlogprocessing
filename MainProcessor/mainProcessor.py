@@ -5,6 +5,7 @@ import pickle
 
 # from DataHandler.dataHandler import DataHandler as DH
 from KernelProcessor.kernelProcessor import KernelProcessor as KP
+from DataHandler.dataHandler import DataHandler as DH
 from evaluator import standardize, evaluate
 
 
@@ -78,12 +79,13 @@ class MainProcessor:
             rtl_seen = self.kp._rtl_count.keys()
             payload = [None] * len(rtl_seen)
             for idx, rtl in enumerate(rtl_seen):
-                mean = dh.tower_past_data[rtl][self.slot_time - 1].mean
-                stdv = dh.tower_past_data[rtl][self.slot_time - 1].std
-                val = evaluate(standardize(kp.get_status(rtl), mean, stdv), 10)
+                mean = self.dh.get_tower_mean(rtl, self.slot_time - 1)
+                stdv = self.dh.get_tower_std[rtl, self.slot_time - 1]
+                val = evaluate(standardize(
+                                self.kp.get_status(rtl), mean, stdv), 10)
 
-                playload[idx] = {'id': self.translator[tower_id],
-                                 'value': val, 'anomaly': False}
+                payload[idx] = {'id': self.translator[rtl],
+                                'value': val, 'anomaly': False}
 
             self.logger.debug('PAYLOAD COMPUTED')
             self.logger.debug(f'PAYLOAD:{payload}')
