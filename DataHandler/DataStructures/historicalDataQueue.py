@@ -115,21 +115,17 @@ class HistoricalDataQueue(deque):
         self.NaNCounter = 0
 
     def extend(self, iterable):
-        res = super().extend(iterable)
-        self.__update()
-        return res
+        for item in iterable:
+            self.append(item)
 
     def extendleft(self, iterable):
-        res = super().extendleft(iterable)
-        self.__update()
-        return res
+        for item in iterable:
+            self.appendleft(item)
 
     def index(self, x, start=None, stop=None):
-        res = super().index(x, start, stop)
-        self.__update()
-        return res
+        return super().index(x, start, stop)
 
     def remove(self, value):
         res = super().remove(value)
-        self.__update()
+        self._update(old=res)
         return res
