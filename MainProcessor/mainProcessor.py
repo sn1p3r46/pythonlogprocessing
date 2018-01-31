@@ -21,7 +21,7 @@ class MainProcessor:
         ch.setLevel(logging.DEBUG)
         # create formatter
         formatter = logging.Formatter('[%(asctime)s]:[%(levelname)s]:%(name)s'
-                                      + '::: \'%(message)s\'')
+                                      + ' ::: \'%(message)s\'')
         # add formatter to ch
         ch.setFormatter(formatter)
         # add ch to logger
@@ -58,9 +58,9 @@ class MainProcessor:
         log_slot = h*60 + m
 
         self.logger.debug(f'LOG DATE: "{log_date}" | ' +
-                          'LAST DATE SEEN: "{self.last_date_seen}" | ' +
-                          'LOG SLOT: "{log_slot}" | ' +
-                          'SLOT TIME: "{self.slot_time}"')
+                          f'LAST DATE SEEN: "{self.last_date_seen}" | ' +
+                          f'LOG SLOT: "{log_slot}" | ' +
+                          f'SLOT TIME: "{self.slot_time}"')
 
         if log_uid == 'NULL' or log_tid == '':
             return
@@ -80,7 +80,7 @@ class MainProcessor:
             payload = [None] * len(rtl_seen)
             for idx, rtl in enumerate(rtl_seen):
                 mean = self.dh.get_tower_mean(rtl, self.slot_time - 1)
-                stdv = self.dh.get_tower_std[rtl, self.slot_time - 1]
+                stdv = self.dh.get_tower_std(rtl, self.slot_time - 1)
                 val = evaluate(standardize(
                                 self.kp.get_status(rtl), mean, stdv), 10)
 

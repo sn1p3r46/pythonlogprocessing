@@ -49,7 +49,7 @@ class DataHandler:
 
     def load_past_data(self, date_str, n_days):
         self.logger.debug(f'.load_past_data(date_str:{date_str}, ' +
-                          'n_days: {n_days}')
+                          f'n_days: {n_days}')
         files_to_load = []
         date = parse(date_str)
         time_delta = timedelta(days=1)
@@ -98,7 +98,7 @@ class DataHandler:
 
     def _create_data_structure(self, past_data_list, n_days):
         self.logger.debug(f"._create_data_structure(past_data_list:[...], " +
-                          "n_days:{n_days})")
+                          f"n_days:{n_days})")
 
         tower_past_data_structs = {}
         for tower_id in set(self.rtd.values()):
@@ -126,7 +126,7 @@ class DataHandler:
             pickle.dump(dict(data), fd)
 
         self.logger.debug(f".persist_historical_data(...) " +
-                          "file_name:{file_name} - COMPLETED")
+                          f"file_name:{file_name} - COMPLETED")
 
     def get_tower_mean(self, rtl, slot):
         return self.tower_past_data[rtl][slot].mean
