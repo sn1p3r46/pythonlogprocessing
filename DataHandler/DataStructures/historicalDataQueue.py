@@ -1,13 +1,13 @@
 from collections import deque
-
+import warnings
 import numpy as np
 
 
 class HistoricalDataQueue(deque):
 
     def __init__(self, iterable=(), maxlen=None):
-        if maxlen is None:
-            raise ValueError()
+        # if maxlen is None:
+        #     raise ValueError()
 
         super().__init__(iterable, maxlen)
 
@@ -40,27 +40,40 @@ class HistoricalDataQueue(deque):
 
         return my_sum, sqr_sum, NaNCounter
 
-    def _update(self, new=np.nan, old=None):
-        if np.isnan(self.mean):
-            self.sum = new
-            self.sqr_sum = new**2
-            self.std = 0.0*new
-            self.mean = new
-            self.NaNCounter +=\
-                + 1*np.isnan(new)\
-                - 1*(old is not None and np.isnan(old))
+    def _update(self, new=None, old=None):
+        self.NaNCounter += \
+            + 1*(new is not None and np.isnan(new)) \
+            - 1*(old is not None and np.isnan(old))
+
+        if np.isnan(self.mean)\
+                or len(self) == 0 \
+                or len(self) == self.NaNCounter:
+
+            new_is_none = new is None
+            self.sum = np.nan if new_is_none else new
+            self.sqr_sum = np.nan if new_is_none else new**2
+            self.std = np.nan if new_is_none else 0.0*new
+            self.mean = np.nan if new_is_none else new
 
         else:
-            self.NaNCounter += \
-                1*np.isnan(new) \
-                - 1*(old is not None and np.isnan(old))
 
             nonNaN = (len(self) - self.NaNCounter)
-            new = new if not np.isnan(new) else 0
+            new = new if new is not None and not np.isnan(new) else 0
             old = old if old is not None and not np.isnan(old) else 0
             self.sum += new - old
             self.sqr_sum += new**2 - old**2
-            self.mean = self.sum/nonNaN
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    self.mean = self.sum/nonNaN
+                except Warning:
+                    print('--------')
+                    print(self)
+                    print(f'self.mean {self.mean}')
+                    print(f'nonNaN {nonNaN}')
+                    print(f'self.NaNCounter {self.NaNCounter}')
+                    print(f'len(self) {len(self)}')
+
             std_sum = nonNaN*(self.mean**2)-2*self.mean*self.sum + self.sqr_sum
             self.std = (std_sum / nonNaN)**(1/2)
 
@@ -84,12 +97,12 @@ class HistoricalDataQueue(deque):
 
     def pop(self):
         res = super().pop()
-        self.__short_update(old=res)
+        self._update(old=res)
         return res
 
     def popleft(self):
         res = super().popleft()
-        self.__short_update(old=res)
+        self._update(old=res)
         return res
 
     def clear(self):

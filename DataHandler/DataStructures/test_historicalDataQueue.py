@@ -1,7 +1,8 @@
 from historicalDataQueue import HistoricalDataQueue as HDQ
 import numpy as np
-from random import randint
-# , sample
+from random import randint, sample
+import pytest
+import warnings
 
 
 def test_empty_queue():
@@ -488,36 +489,143 @@ def test_mixed_full_appendleft_num():
     assert len(hdq) == 5
 
 
-# def test_random_random():
-#         my_set = set([1, 2, 3, 4, np.nan])
-#         for i in range(5555):
-#             mg = [sample(my_set, 1)[0] for _ in range(5)]
-#             hdq = HDQ(mg, 5)
-#             for i in range(10):
-#                 hdq.append(sample(my_set, 1)[0])
-#
-#                 if not (np.isnan(hdq.sqr_sum)
-#                         and np.isnan(np.nansum([x**2 for x in hdq]))):
-#
-#                     assert np.isclose(hdq.sqr_sum,
-#                                       np.nansum([x**2 for x in hdq])) or\
-#                                       np.nansum([x**2 for x in hdq]) == 0.0\
-#                                       and (hdq.sqr_sum == 0.0 or np.isnan(
-#                                            hdq.sqr_sum))
-#                 else:
-#                     assert (np.isnan(hdq.sqr_sum) and np.isnan(np.nansum(
-#                                                        [x**2 for x in hdq])))
-#
-#                 if not (np.isnan(hdq.mean) and np.isnan(np.nanmean(hdq))):
-#                     assert np.isclose(hdq.mean, np.nanmean(hdq))
-#                 else:
-#                     assert (np.isnan(hdq.mean) and np.isnan(np.nanmean(hdq)))
-#
-#                 if not (np.isnan(hdq.std) and np.isnan(np.nanstd(hdq))):
-#                     assert np.isclose(hdq.std, np.nanstd(hdq))
-#                 else:
-#                     assert (np.isnan(hdq.std) and np.isnan(np.nanstd(hdq)))
-#
-#             assert hdq.maxlen == 5
-#             assert hdq.NaNCounter == hdq.count(np.nan)
-#             assert len(hdq) == 5
+def test_pop_empty():
+    hdq = HDQ(iterable=(), maxlen=None)
+    with pytest.raises(IndexError) as error:
+        hdq.pop()
+    assert 'pop from an empty deque' in str(error.value)
+
+
+def test_pop_nan_full_nan():
+    hdq = HDQ([np.nan]*5, maxlen=5)
+    for i in range(5):
+
+        assert np.isnan(hdq.sum)
+        assert np.isnan(hdq.sqr_sum)
+        assert hdq.NaNCounter == 5 - i
+        assert np.isnan(hdq.std)
+        assert np.isnan(hdq.mean)
+        assert hdq.maxlen == 5
+        assert len(hdq) == 5 - i
+
+        assert np.isnan(hdq.pop())
+
+
+def test_popleft_nan_full_nan():
+    hdq = HDQ([np.nan]*5, maxlen=5)
+    for i in range(5):
+
+        assert np.isnan(hdq.sum)
+        assert np.isnan(hdq.sqr_sum)
+        assert hdq.NaNCounter == 5 - i
+        assert np.isnan(hdq.std)
+        assert np.isnan(hdq.mean)
+        assert hdq.maxlen == 5
+        assert len(hdq) == 5 - i
+
+        assert np.isnan(hdq.popleft())
+
+
+def test_pop_nan_non_full_nan():
+    hdq = HDQ([np.nan]*3, maxlen=5)
+    for i in range(3):
+
+        assert np.isnan(hdq.sum)
+        assert np.isnan(hdq.sqr_sum)
+        assert hdq.NaNCounter == 3 - i
+        assert np.isnan(hdq.std)
+        assert np.isnan(hdq.mean)
+        assert hdq.maxlen == 5
+        assert len(hdq) == 3 - i
+
+        assert np.isnan(hdq.pop())
+
+
+def test_popleft_nan_non_full_nan():
+    hdq = HDQ([np.nan]*3, maxlen=5)
+    for i in range(3):
+
+        assert np.isnan(hdq.sum)
+        assert np.isnan(hdq.sqr_sum)
+        assert hdq.NaNCounter == 3 - i
+        assert np.isnan(hdq.std)
+        assert np.isnan(hdq.mean)
+        assert hdq.maxlen == 5
+        assert len(hdq) == 3 - i
+
+        assert np.isnan(hdq.popleft())
+
+
+def test_pop_random_non_full_num():
+    hdq = HDQ(iterable=(randint(0, 999999) for _ in range(3)), maxlen=5)
+
+    for i in range(3):
+
+        assert hdq.sum == np.nansum(hdq)
+        assert hdq.sqr_sum == np.nansum([x**2 for x in hdq])
+        assert hdq.mean == np.nanmean(hdq)
+        assert np.isclose(hdq.std, np.nanstd(hdq))
+        assert hdq.maxlen == 5
+        assert hdq.NaNCounter == 0
+        assert len(hdq) == 3 - i
+
+        hdq.pop()
+
+
+def test_popleft_random_non_full_num():
+    hdq = HDQ(iterable=(randint(0, 999999) for _ in range(3)), maxlen=5)
+
+    for i in range(3):
+        assert hdq.sum == np.nansum(hdq)
+        assert hdq.sqr_sum == np.nansum([x**2 for x in hdq])
+        assert hdq.mean == np.nanmean(hdq)
+        assert np.isclose(hdq.std, np.nanstd(hdq))
+        assert hdq.maxlen == 5
+        assert hdq.NaNCounter == 0
+        assert len(hdq) == 3 - i
+
+        hdq.popleft()
+
+
+def test_random_random():
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        my_set = set([1, 2, 3, 4, np.nan])
+        for i in range(5555):
+            mg = [sample(my_set, 1)[0] for _ in range(5)]
+            hdq = HDQ(mg, 5)
+            for i in range(10):
+                hdq.append(sample(my_set, 1)[0])
+
+                if not (np.isnan(hdq.sqr_sum)
+                        and np.isnan(np.nansum([x**2 for x in hdq]))):
+
+                    assert np.isclose(hdq.sqr_sum,
+                                      np.nansum([x**2 for x in hdq])) or\
+                                      np.nansum([x**2 for x in hdq]) == 0.0\
+                                      and (hdq.sqr_sum == 0.0 or np.isnan(
+                                           hdq.sqr_sum))
+                else:
+                    assert (np.isnan(hdq.sqr_sum)
+                            and np.isnan(np.nansum([x**2 for x in hdq])))
+
+                cond = np.isnan(np.nanmean(hdq))
+
+                if not (np.isnan(hdq.mean)
+                        and cond):
+                    assert np.isclose(hdq.mean, np.nanmean(hdq))
+                else:
+                    cond = np.isnan(np.nanmean(hdq))
+                    assert (np.isnan(hdq.mean)
+                            and cond)
+
+                if not (np.isnan(hdq.std)
+                        and np.isnan(np.nanstd(hdq))):
+                    assert np.isclose(hdq.std, np.nanstd(hdq))
+                else:
+                    assert (np.isnan(hdq.std)
+                            and np.isnan(np.nanstd(hdq)))
+
+            assert hdq.maxlen == 5
+            assert hdq.NaNCounter == hdq.count(np.nan)
+            assert len(hdq) == 5
