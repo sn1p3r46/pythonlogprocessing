@@ -122,6 +122,7 @@ class DataHandler:
 
         file_name = self.pb.build_past_data_file_name(
                         self.last_date_loaded.strftime('%Y%m%d') + "_test")
+
         with open(self.pb.build_historical_path(file_name), 'wb') as fd:
             pickle.dump(dict(data), fd)
 
@@ -132,4 +133,4 @@ class DataHandler:
         return self.tower_past_data[rtl][slot].mean
 
     def get_tower_std(self, rtl, slot):
-        return self.dh.tower_past_data[rtl][slot].std
+        return self.tower_past_data[rtl][slot].std
